@@ -1,12 +1,14 @@
-import React from 'react';
-import { Bell, User, LogOut, Sun, Moon } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bell, User, LogOut, Sun, Moon, LogIn } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
+import LoginModal from './LoginModal';
 
 export default function TopBar({ connected, status, activePage, alertCount = 0, onPageChange }) {
     const { isLoggedIn, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const isRunning = status === 'running';
+    const [loginOpen, setLoginOpen] = useState(false);
 
     const pageLabels = {
         dashboard: 'Dashboard',
@@ -120,7 +122,7 @@ export default function TopBar({ connected, status, activePage, alertCount = 0, 
                         </span>
                     )}
                 </button>
-                {isLoggedIn && (
+                {isLoggedIn ? (
                     <button className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200"
                         title="Logout"
                         onClick={logout}
@@ -132,10 +134,27 @@ export default function TopBar({ connected, status, activePage, alertCount = 0, 
                         onMouseEnter={e => e.currentTarget.style.background = 'var(--glass-bg-hover)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'var(--glass-bg-3)'}
                     >
-                        <User className="w-4 h-4 hover:hidden" style={{ color: 'var(--text-muted)' }} />
-                        <LogOut className="w-4 h-4 hidden hover:block" style={{ color: 'var(--text-muted)' }} />
+                        <User className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                    </button>
+                ) : (
+                    <button
+                        onClick={() => setLoginOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all duration-200"
+                        style={{
+                            background: 'linear-gradient(135deg, var(--accent) 0%, #4f46e5 100%)',
+                            color: '#fff',
+                            border: 'none',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 15px rgba(99,102,241,0.35)',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                        onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                    >
+                        <LogIn className="w-3.5 h-3.5" />
+                        Login
                     </button>
                 )}
+                <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} />
             </div>
         </div>
     );
