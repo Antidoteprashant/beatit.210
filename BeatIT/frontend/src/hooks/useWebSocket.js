@@ -126,19 +126,35 @@ export function useWebSocket() {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
 
+            // DEBUG: log session state
+            console.log('[BeatIT] Session:', session ? 'EXISTS' : 'NULL');
+            console.log('[BeatIT] Token:', token ? `${token.substring(0, 20)}...` : 'MISSING - user not logged in');
+            console.log('[BeatIT] User:', session?.user?.email ?? 'none');
+
+            if (!token) {
+                console.error('[BeatIT] No auth token — user must log in first');
+                alert('You must be logged in to run a test. Please click the Login button in the top-right corner.');
+                return;
+            }
+
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+            console.log('[BeatIT] Sending request to:', `${apiUrl}/api/test/start`);
+
             const response = await fetch(`${apiUrl}/api/test/start`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': token ? `Bearer ${token}` : ''
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(config)
             });
 
+            console.log('[BeatIT] Response status:', response.status);
+
             if (!response.ok) {
-                console.error('Failed to start test via API');
-                // If API fails immediately, we might want to alert the user or reset
+                const errBody = await response.json().catch(() => ({}));
+                console.error('[BeatIT] Failed to start test via API:', errBody);
+                alert(`API Error ${response.status}: ${errBody?.error || 'Unknown error'}`);
             }
         } catch (err) {
             console.error('API error starting test:', err);
